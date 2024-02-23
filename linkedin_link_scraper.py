@@ -1,7 +1,6 @@
 from selenium import webdriver
 import json
 from bs4 import BeautifulSoup
-import time
 
 if __name__ == "__main__":
     links = json.load(open("dev_agency_links.json", 'r'))
