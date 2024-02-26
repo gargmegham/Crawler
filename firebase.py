@@ -40,6 +40,6 @@ def insert_web_dev_agency(collection_name, website):
         print("Error adding document:", str(e))    
 
 if __name__ == "__main__":
-    credentials = firebase_admin.credentials.Certificate("servcy-landing-firebase-adminsdk-84yk3-4cfb9454e1.json")
+    credentials = firebase_admin.credentials.Certificate("secrets/servcy-landing-firebase-adminsdk-84yk3-4cfb9454e1.json")
     app = firebase_admin.initialize_app(credentials)
     db = firestore.client()

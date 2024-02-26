@@ -1,5 +1,4 @@
 from selenium import webdriver
-import json
 from bs4 import BeautifulSoup
 import time
 
@@ -33,8 +32,17 @@ def clean_links(links: list):
     return unique_links
 
 
-if __name__ == "__main__":
-    start_time = time.time()
-    links = find_links("https://clutch.co/us/web-developers", 270)
-    unique_links = clean_links(links)
-    json.dump(unique_links, open(f"USA.json", "w"), indent=4)
+def find_linkedin_link(webpage: str):
+    driver = webdriver.Chrome()
+    driver.get(webpage)
+    html_content = driver.page_source
+    soup = BeautifulSoup(html_content, "html.parser")
+    linkedin_links = set()
+    all_links = soup.find_all("a")
+    for a in all_links:
+        if a.has_attr("href"):
+            if "https://www.linkedin.com/company/" in a["href"]:
+                clean_link = a["href"].split("?")[0]
+                linkedin_links.add(clean_link)
+    driver.quit()
+    return list(linkedin_links)
