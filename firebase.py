@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import firestore
 
 
-def insert_email(collection_name: str, mail: str, db: firestore.client.Client):
+def insert_email(collection_name: str, mail: str, db: firestore.client):
     try:
         doc_ref = db.collection(collection_name).document()
         docs = db.collection(collection_name).where("email", "==", mail).stream()
@@ -15,7 +15,7 @@ def insert_email(collection_name: str, mail: str, db: firestore.client.Client):
         print("Error adding document:", str(e))
 
 
-def print_collection(collection_name):
+def print_collection(collection_name, db: firestore.client):
     docs = db.collection(collection_name).stream()
     total_records = 0
     for doc in docs:
@@ -27,7 +27,7 @@ def print_collection(collection_name):
     print(f"Total records: {total_records}")
 
 
-def create_new_collection(collection_name, initial_data):
+def create_new_collection(collection_name, initial_data, db: firestore.client):
     try:
         db.collection(collection_name).add(initial_data)
         print(f"Collection {collection_name} created successfully")
@@ -35,7 +35,7 @@ def create_new_collection(collection_name, initial_data):
         print(f"Error creating collection {collection_name}:", str(e))
 
 
-def insert_web_dev_agency(collection_name, website):
+def insert_web_dev_agency(collection_name, website, db: firestore.client):
     try:
         doc_ref = db.collection(collection_name).document()
         doc_ref.set({"website": website})
