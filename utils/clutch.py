@@ -7,10 +7,6 @@ from pymongo.collection import Collection
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-
-options = Options()
-options.headless = True
 
 logging.basicConfig(
     level=logging.ERROR,
@@ -44,7 +40,7 @@ def apply_filters(
 
 
 def find_directory_links() -> list:
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome()
     driver.get("https://clutch.co/sitemap")
     links = driver.find_elements(By.TAG_NAME, "a")
     urls = []
@@ -56,7 +52,7 @@ def find_directory_links() -> list:
 
 
 def find_actual_link_after_redirecting(link: str) -> str:
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome()
     driver.get(link)
     time.sleep(randint(1, 5))
     actual_link = driver.current_url
@@ -123,7 +119,7 @@ def crawl_companies(base_url: str, companies: Collection) -> list:
     current_page = 0
     while not page_has_error:
         print(f"Processing page: {current_page} for {base_url}")
-        driver = webdriver.Chrome(options=options)
+        driver = webdriver.Chrome()
         driver.get(
             apply_filters(f"{base_url}?sort_by=ClutchRank", current_page, verified=True, min_reviews=None)
         )
