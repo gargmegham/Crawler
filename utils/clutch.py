@@ -116,7 +116,7 @@ def check_for_error(soup: BeautifulSoup) -> bool:
 
 def crawl_companies(base_url: str, companies: Collection) -> list:
     page_has_error = False
-    current_page = 1
+    current_page = 0
     while not page_has_error:
         print(f"Processing page: {current_page} for {base_url}")
         driver = webdriver.Chrome()
