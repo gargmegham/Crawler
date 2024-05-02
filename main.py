@@ -23,15 +23,14 @@ app = config["mongodb"]["app"]
 uri = f"mongodb+srv://{username}:{password}@crawled.abmyxjs.mongodb.net/?retryWrites=true&w=majority&appName={app}"
 client = MongoClient(uri, server_api=ServerApi("1"))
 
-if __name__ == "__main__":
+
+def main(event, context):
     try:
         client.admin.command("ping")
         clutch = client["clutch"]
         links = clutch["links"]
         companies = clutch["companies"]
-        for link in links.find(
-            {"link": {"$regex": "developer"}}
-        ):
+        for link in links.find({"link": {"$regex": "developer"}}):
             print(f"Processing link: {link['link']}")
             companies.insert_many(find_companies(link["link"]))
     except Exception as e:
