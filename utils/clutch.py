@@ -68,7 +68,7 @@ def find_company_info(
     company: BeautifulSoup, clutch_link: str
 ) -> dict:
     company_name = extract_soup_text(company.find("a", class_="company_title")) or company["data-title"]
-    website_link = company.find("a", class_="website-link__item")["href"]
+    website_link = company.find("a", class_="website-link__item").get("href", "")
     if "/profile/" in website_link:
         return {}
     tagline = extract_soup_text(company.find("p", class_="company_info__wrap"))
