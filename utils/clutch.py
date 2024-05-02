@@ -67,7 +67,8 @@ def extract_soup_text(soup: BeautifulSoup) -> str:
 def find_company_info(
     company: BeautifulSoup, clutch_link: str
 ) -> dict:
-    company_name = extract_soup_text(company.find("a", class_="company_title")) or company["data-title"]
+    company_uid = company.get("data-uid")
+    company_name = extract_soup_text(company.find("a", class_="company_title")) or company.get("data-title")
     website_link = company.find("a", class_="website-link__item")
     if not website_link:
         return {}
@@ -93,6 +94,7 @@ def find_company_info(
     if "?" in website_link:
         website_link = website_link.split("?")[0]
     return {
+        "company_uid": str(company_uid),
         "company_name": company_name,
         "tagline": tagline,
         "rating": rating,
@@ -131,21 +133,26 @@ def crawl_companies(base_url: str, companies: Collection) -> list:
             print(f"Error on page {current_page} for {base_url}")
             break
         for company in companies_found:
+            company_uid = company.get("data-uid")
+            company_name = extract_soup_text(company.find("a", class_="company_title")) or company.get("data-title")
+            if companies.find_one(
+                {
+                    "company_uid": company_uid,
+                    "company_name": company_name,
+                }
+            ):
+                print(
+                    f"Company already exists: {company_uid} ::: {company_name}"
+                )
+                continue
             company_info = find_company_info(
                 company, base_url
             )
             if not company_info.get("website_link"):
                 print(f"Website link not found for {company_info.get('company_name')}")
                 continue
-            if companies.find_one({"website_link": company_info.get("website_link")}):
-                print(
-                    f"Company already exists: {company_info.get('company_name')}"
-                )
-                continue
             companies.insert_one(company_info)
-            print(
-                f"Company: {company_info.get('company_name')}", company_info
-            )
+            print(f"Company: {company_info.get('company_name')}")
         else:
             print(f"Page {current_page} processed successfully")
         time.sleep(randint(1, 5))
