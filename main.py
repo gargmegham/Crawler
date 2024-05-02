@@ -34,7 +34,7 @@ def main(event, context):
             print(f"Processing link: {link['link']}")
             crawl_companies(link["link"], companies)
     except Exception as e:
-        logging.error(f"Error connecting to MongoDB: {str(e)}")
+        logging.error(f"Error connecting to MongoDB: {str(e)}", exc_info=True)
 
 if __name__ == "__main__":
     main(None, None)
