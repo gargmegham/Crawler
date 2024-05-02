@@ -3,6 +3,7 @@ import time
 from random import randint
 
 from bs4 import BeautifulSoup
+from pymongo.collection import Collection
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -64,12 +65,12 @@ def extract_soup_text(soup: BeautifulSoup) -> str:
 
 
 def find_company_info(
-    company: BeautifulSoup, unique_company: set, clutch_link: str
+    company: BeautifulSoup, clutch_link: str
 ) -> dict:
-    company_name = extract_soup_text(company.find("a", class_="company_title"))
+    company_name = extract_soup_text(company.find("a", class_="company_title")) or company["data-title"]
     website_link = company.find("a", class_="website-link__item")["href"]
-    if company_name in unique_company or "/profile/" in website_link:
-        return {}, False
+    if "/profile/" in website_link:
+        return {}
     tagline = extract_soup_text(company.find("p", class_="company_info__wrap"))
     rating = extract_soup_text(company.find("span", class_="sg-rating__number"))
     reviews_count = extract_soup_text(
@@ -97,7 +98,7 @@ def find_company_info(
         "extra_info": extra_info,
         "clutch_link": clutch_link,
         "website_link": website_link,
-    }, True
+    }
 
 
 def check_for_error(soup: BeautifulSoup) -> bool:
@@ -110,35 +111,39 @@ def check_for_error(soup: BeautifulSoup) -> bool:
         return False
 
 
-def find_companies(base_url: str) -> list:
+def crawl_companies(base_url: str, companies: Collection) -> list:
     page_has_error = False
-    current_page = 0
-    companies = []
-    unique_company = set()
+    current_page = 1
     while not page_has_error:
         print(f"Processing page: {current_page} for {base_url}")
         driver = webdriver.Chrome()
         driver.get(
-            apply_filters(f"{base_url}?", current_page, verified=True, min_reviews=None)
+            apply_filters(f"{base_url}?sort_by=ClutchRank", current_page, verified=True, min_reviews=None)
         )
         html_content = driver.page_source
         driver.quit()
         soup = BeautifulSoup(html_content, "html.parser")
-        current_companies = soup.find_all("li", class_="provider-row")
-        if check_for_error(soup) or not current_companies:
+        companies_found = soup.find_all("li", class_="provider-row")
+        if check_for_error(soup) or not companies_found:
             print(f"Error on page {current_page} for {base_url}")
-            page_has_error = True
-        else:
-            for company in current_companies:
-                company_info, is_unique = find_company_info(
-                    company, unique_company, base_url
-                )
+            break
+        for company in companies_found:
+            company_info = find_company_info(
+                company, base_url
+            )
+            if not company_info.get("website_link"):
+                print(f"Website link not found for {company_info.get('company_name')}")
+                continue
+            if companies.find_one({"website_link": company_info.get("website_link")}):
                 print(
-                    f"Company: {company_info.get('company_name')} - Unique: {is_unique}"
+                    f"Company already exists: {company_info.get('company_name')}"
                 )
-                if is_unique:
-                    unique_company.add(company_info["company_name"])
-                    companies.append(company_info)
+                continue
+            companies.insert_one(company_info)
+            print(
+                f"Company: {company_info.get('company_name')}", company_info
+            )
+        else:
+            print(f"Page {current_page} processed successfully")
         time.sleep(randint(1, 5))
         current_page += 1
-    return companies

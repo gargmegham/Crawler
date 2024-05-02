@@ -5,7 +5,7 @@ import os
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-from utils.clutch import find_companies
+from utils.clutch import crawl_companies
 
 if not os.path.exists("logs"):
     os.makedirs("logs")
@@ -32,6 +32,9 @@ def main(event, context):
         companies = clutch["companies"]
         for link in links.find({"link": {"$regex": "developer"}}):
             print(f"Processing link: {link['link']}")
-            companies.insert_many(find_companies(link["link"]))
+            crawl_companies(link["link"], companies)
     except Exception as e:
         logging.error(f"Error connecting to MongoDB: {str(e)}")
+
+if __name__ == "__main__":
+    main(None, None)
