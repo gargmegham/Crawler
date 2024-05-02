@@ -8,20 +8,28 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 
-def find_linkedin_link(webpage: str):
-    driver = webdriver.Chrome()
-    driver.get(webpage)
+def crawl_company(url: str, driver: webdriver.Chrome) -> tuple:
+    print("Crawling: ", url)
+    driver.get(url)
     html_content = driver.page_source
     soup = BeautifulSoup(html_content, "html.parser")
     linkedin_links = set()
-    all_links = soup.find_all("a")
-    for a in all_links:
-        if a.has_attr("href"):
-            if "https://www.linkedin.com/company/" in a["href"]:
-                clean_link = a["href"].split("?")[0]
-                linkedin_links.add(clean_link)
-    driver.quit()
-    return list(linkedin_links)
+    emails = set()
+    phone_numbers = set()
+    for link in soup.find_all("a"):
+        href = link.get("href")
+        if href:
+            if "linkedin.com" in href:
+                linkedin_links.add(href)
+            if "mailto:" in href:
+                emails.add(href.replace("mailto:", ""))
+            if "tel:" in href:
+                phone_numbers.add(href.replace("tel:", ""))
+    print("Linkedin Links: ", linkedin_links)
+    print("Emails: ", emails)
+    print("Phone Numbers: ", phone_numbers)
+    print("*" * 50)
+    return list(linkedin_links), list(emails), list(phone_numbers)
 
 
 def find_linkedin_company_people(company_links: list, secrets):
