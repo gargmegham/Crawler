@@ -62,26 +62,31 @@ def find_actual_link_after_redirecting(link: str) -> str:
 def extract_soup_text(soup: BeautifulSoup) -> str:
     return soup.text.strip() if soup else ""
 
-def find_company_info(company: BeautifulSoup, unique_company: set, clutch_link: str) -> dict:
+
+def find_company_info(
+    company: BeautifulSoup, unique_company: set, clutch_link: str
+) -> dict:
     company_name = extract_soup_text(company.find("a", class_="company_title"))
     website_link = company.find("a", class_="website-link__item")["href"]
     if company_name in unique_company or "/profile/" in website_link:
         return {}, False
     tagline = extract_soup_text(company.find("p", class_="company_info__wrap"))
     rating = extract_soup_text(company.find("span", class_="sg-rating__number"))
-    reviews_count = extract_soup_text(company.find("a", class_="sg-rating__reviews")).replace(" reviews", "")
-    min_project_size = company.find('div', class_='list-item block_tag custom_popover')
+    reviews_count = extract_soup_text(
+        company.find("a", class_="sg-rating__reviews")
+    ).replace(" reviews", "")
+    min_project_size = company.find("div", class_="list-item block_tag custom_popover")
     if min_project_size:
-        min_project_size = extract_soup_text(min_project_size.find('span'))
+        min_project_size = extract_soup_text(min_project_size.find("span"))
     else:
         min_project_size = ""
     extra_info = []
-    if company.find_all('div', class_='list-item custom_popover'):
-        for info in company.find_all('div', class_='list-item custom_popover'):
-            extra_info.append(extract_soup_text(info.find('span')))
+    if company.find_all("div", class_="list-item custom_popover"):
+        for info in company.find_all("div", class_="list-item custom_popover"):
+            extra_info.append(extract_soup_text(info.find("span")))
     if "ppc.clutch.co" in website_link:
         website_link = find_actual_link_after_redirecting(website_link)
-    elif "?" in website_link:
+    if "?" in website_link:
         website_link = website_link.split("?")[0]
     return {
         "company_name": company_name,
@@ -113,7 +118,9 @@ def find_companies(base_url: str) -> list:
     while not page_has_error:
         print(f"Processing page: {current_page} for {base_url}")
         driver = webdriver.Chrome()
-        driver.get(apply_filters(f"{base_url}?", current_page, verified=True, min_reviews=None))
+        driver.get(
+            apply_filters(f"{base_url}?", current_page, verified=True, min_reviews=None)
+        )
         html_content = driver.page_source
         driver.quit()
         soup = BeautifulSoup(html_content, "html.parser")
@@ -123,8 +130,12 @@ def find_companies(base_url: str) -> list:
             page_has_error = True
         else:
             for company in current_companies:
-                company_info, is_unique = find_company_info(company, unique_company, base_url)
-                print(f"Company: {company_info.get('company_name')} - Unique: {is_unique}")
+                company_info, is_unique = find_company_info(
+                    company, unique_company, base_url
+                )
+                print(
+                    f"Company: {company_info.get('company_name')} - Unique: {is_unique}"
+                )
                 if is_unique:
                     unique_company.add(company_info["company_name"])
                     companies.append(company_info)
