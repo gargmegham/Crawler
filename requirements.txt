@@ -1,3 +1,0 @@
-beautifulsoup4
-firebase-admin
-selenium

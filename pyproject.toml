@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "clutchcrawler"
+version = "0.1.0"
+description = ""
+authors = ["Megham Garg <meghamgarg@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+beautifulsoup4 = "^4.12.3"
+selenium = "^4.20.0"
+pymongo = "^4.7.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

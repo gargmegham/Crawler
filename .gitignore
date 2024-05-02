@@ -1,3 +1,5 @@
 .venv
-*.json
-htmls
+config.ini
+servcy-landing-firebase-adminsdk-84yk3-4cfb9454e1.json
+logs
+.DS_Store
