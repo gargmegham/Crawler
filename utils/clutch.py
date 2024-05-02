@@ -22,7 +22,7 @@ def apply_filters(
     if page > 0:
         base_url += f"&page={page}"
     if verified:
-        base_url += "verification=true"
+        base_url += "&verification=true"
     if min_reviews in [1, 3, 5, 10, 15, 20]:
         base_url += f"&reviews={min_reviews}"
     if team_size is not None:
