@@ -68,7 +68,10 @@ def find_company_info(
     company: BeautifulSoup, clutch_link: str
 ) -> dict:
     company_name = extract_soup_text(company.find("a", class_="company_title")) or company["data-title"]
-    website_link = company.find("a", class_="website-link__item").get("href", "")
+    website_link = company.find("a", class_="website-link__item")
+    if not website_link:
+        return {}
+    website_link = website_link["href"]
     if "/profile/" in website_link:
         return {}
     tagline = extract_soup_text(company.find("p", class_="company_info__wrap"))
@@ -113,7 +116,7 @@ def check_for_error(soup: BeautifulSoup) -> bool:
 
 def crawl_companies(base_url: str, companies: Collection) -> list:
     page_has_error = False
-    current_page = 0
+    current_page = 1
     while not page_has_error:
         print(f"Processing page: {current_page} for {base_url}")
         driver = webdriver.Chrome()
