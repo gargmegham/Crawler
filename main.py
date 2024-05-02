@@ -5,6 +5,8 @@ import os
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
+from utils.clutch import find_companies
+
 if not os.path.exists("logs"):
     os.makedirs("logs")
 logging.basicConfig(
@@ -24,5 +26,13 @@ client = MongoClient(uri, server_api=ServerApi("1"))
 if __name__ == "__main__":
     try:
         client.admin.command("ping")
+        clutch = client["clutch"]
+        links = clutch["links"]
+        companies = clutch["companies"]
+        for link in links.find(
+            {"link": {"$regex": "developer"}}
+        ):
+            print(f"Processing link: {link['link']}")
+            companies.insert_many(find_companies(link["link"]))
     except Exception as e:
         logging.error(f"Error connecting to MongoDB: {str(e)}")
