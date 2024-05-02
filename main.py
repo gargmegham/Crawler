@@ -24,17 +24,8 @@ uri = f"mongodb+srv://{username}:{password}@crawled.abmyxjs.mongodb.net/?retryWr
 client = MongoClient(uri, server_api=ServerApi("1"))
 
 
-def main(event, context):
+if __name__ == "__main__":
     try:
         client.admin.command("ping")
-        clutch = client["clutch"]
-        links = clutch["links"]
-        companies = clutch["companies"]
-        for link in links.find({"link": {"$regex": "developer"}}):
-            print(f"Processing link: {link['link']}")
-            crawl_companies(link["link"], companies)
     except Exception as e:
         logging.error(f"Error connecting to MongoDB: {str(e)}", exc_info=True)
-
-if __name__ == "__main__":
-    main(None, None)
