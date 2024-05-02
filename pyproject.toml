@@ -10,6 +10,7 @@ python = "^3.8"
 beautifulsoup4 = "^4.12.3"
 selenium = "^4.20.0"
 pymongo = "^4.7.1"
+selenium-wire = "^5.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
