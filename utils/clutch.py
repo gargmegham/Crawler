@@ -64,15 +64,15 @@ def extract_soup_text(soup: BeautifulSoup) -> str:
     return soup.text.strip() if soup else ""
 
 
-def find_company_info(company: BeautifulSoup, clutch_link: str) -> dict:
-    company_name = extract_soup_text(
+def find_company_info(company: BeautifulSoup) -> dict:
+    name = extract_soup_text(
         company.find("a", class_="company_title")
     ) or company.get("data-title")
-    website_link = company.find("a", class_="website-link__item")
-    if not website_link:
+    website = company.find("a", class_="website-link__item")
+    if not website:
         return {}
-    website_link = website_link["href"]
-    if "/profile/" in website_link:
+    website = website["href"]
+    if "/profile/" in website:
         return {}
     tagline = extract_soup_text(company.find("p", class_="company_info__wrap"))
     rating = extract_soup_text(company.find("span", class_="sg-rating__number"))
@@ -88,19 +88,18 @@ def find_company_info(company: BeautifulSoup, clutch_link: str) -> dict:
     if company.find_all("div", class_="list-item custom_popover"):
         for info in company.find_all("div", class_="list-item custom_popover"):
             extra_info.append(extract_soup_text(info.find("span")))
-    if "ppc.clutch.co" in website_link:
-        website_link = find_actual_link_after_redirecting(website_link)
-    if "?" in website_link:
-        website_link = website_link.split("?")[0]
+    if "ppc.clutch.co" in website:
+        website = find_actual_link_after_redirecting(website)
+    if "?" in website:
+        website = website.split("?")[0]
     return {
-        "company_name": company_name,
+        "name": name,
         "tagline": tagline,
         "rating": rating,
         "reviews_count": reviews_count,
         "min_project_size": min_project_size,
         "extra_info": extra_info,
-        "clutch_link": clutch_link,
-        "website_link": website_link,
+        "website": website,
     }
 
 
@@ -160,18 +159,18 @@ def crawl_companies(base_url: str, companies: Collection) -> list:
             print(f"Error on page {current_page} for {base_url}")
             break
         for company in companies_found:
-            company_name = extract_soup_text(
+            name = extract_soup_text(
                 company.find("a", class_="company_title")
             ) or company.get("data-title")
-            if companies.find_one({"company_name": company_name}):
-                print(f"Company already exists: {company_name}")
+            if companies.find_one({"name": name}):
+                print(f"Company already exists: {name}")
                 continue
-            company_info = find_company_info(company, base_url)
-            if not company_info.get("website_link"):
-                print(f"Website link not found for {company_info.get('company_name')}")
+            company_info = find_company_info(company)
+            if not company_info.get("website"):
+                print(f"Website link not found for {company_info.get('name')}")
                 continue
             companies.insert_one(company_info)
-            print(f"Company: {company_info.get('company_name')}")
+            print(f"Company: {company_info.get('name')}")
         else:
             print(f"Page {current_page} processed successfully")
         time.sleep(randint(1, 5))
