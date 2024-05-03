@@ -64,10 +64,10 @@ def extract_soup_text(soup: BeautifulSoup) -> str:
     return soup.text.strip() if soup else ""
 
 
-def find_company_info(
-    company: BeautifulSoup, clutch_link: str
-) -> dict:
-    company_name = extract_soup_text(company.find("a", class_="company_title")) or company.get("data-title")
+def find_company_info(company: BeautifulSoup, clutch_link: str) -> dict:
+    company_name = extract_soup_text(
+        company.find("a", class_="company_title")
+    ) or company.get("data-title")
     website_link = company.find("a", class_="website-link__item")
     if not website_link:
         return {}
@@ -114,6 +114,30 @@ def check_for_error(soup: BeautifulSoup) -> bool:
         return False
 
 
+def crawl_company(url: str, driver: webdriver.Chrome) -> tuple:
+    print("Crawling: ", url)
+    driver.get(url)
+    html_content = driver.page_source
+    soup = BeautifulSoup(html_content, "html.parser")
+    linkedin_links = set()
+    emails = set()
+    phone_numbers = set()
+    for link in soup.find_all("a"):
+        href = link.get("href")
+        if href:
+            if "linkedin.com" in href:
+                linkedin_links.add(href)
+            if "mailto:" in href:
+                emails.add(href.replace("mailto:", ""))
+            if "tel:" in href:
+                phone_numbers.add(href.replace("tel:", ""))
+    print("Linkedin Links: ", linkedin_links)
+    print("Emails: ", emails)
+    print("Phone Numbers: ", phone_numbers)
+    print("*" * 50)
+    return list(linkedin_links), list(emails), list(phone_numbers)
+
+
 def crawl_companies(base_url: str, companies: Collection) -> list:
     page_has_error = False
     current_page = 0
@@ -121,7 +145,12 @@ def crawl_companies(base_url: str, companies: Collection) -> list:
         print(f"Processing page: {current_page} for {base_url}")
         driver = webdriver.Chrome()
         driver.get(
-            apply_filters(f"{base_url}?sort_by=ClutchRank", current_page, verified=True, min_reviews=None)
+            apply_filters(
+                f"{base_url}?sort_by=ClutchRank",
+                current_page,
+                verified=True,
+                min_reviews=None,
+            )
         )
         html_content = driver.page_source
         driver.quit()
@@ -131,15 +160,13 @@ def crawl_companies(base_url: str, companies: Collection) -> list:
             print(f"Error on page {current_page} for {base_url}")
             break
         for company in companies_found:
-            company_name = extract_soup_text(company.find("a", class_="company_title")) or company.get("data-title")
+            company_name = extract_soup_text(
+                company.find("a", class_="company_title")
+            ) or company.get("data-title")
             if companies.find_one({"company_name": company_name}):
-                print(
-                    f"Company already exists: {company_name}"
-                )
+                print(f"Company already exists: {company_name}")
                 continue
-            company_info = find_company_info(
-                company, base_url
-            )
+            company_info = find_company_info(company, base_url)
             if not company_info.get("website_link"):
                 print(f"Website link not found for {company_info.get('company_name')}")
                 continue
