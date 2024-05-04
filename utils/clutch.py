@@ -8,6 +8,8 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
+from utils import extract_soup_text
+
 logging.basicConfig(
     level=logging.ERROR,
     format="%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(message)s",
@@ -60,14 +62,10 @@ def find_actual_link_after_redirecting(link: str) -> str:
     return actual_link
 
 
-def extract_soup_text(soup: BeautifulSoup) -> str:
-    return soup.text.strip() if soup else ""
-
-
 def find_company_info(company: BeautifulSoup) -> dict:
-    name = extract_soup_text(
-        company.find("a", class_="company_title")
-    ) or company.get("data-title")
+    name = extract_soup_text(company.find("a", class_="company_title")) or company.get(
+        "data-title"
+    )
     website = company.find("a", class_="website-link__item")
     if not website:
         return {}
