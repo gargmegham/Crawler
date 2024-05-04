@@ -1,11 +1,11 @@
-import json
 import time
 from random import randint
 
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+
+from utils import extract_soup_text
 
 
 def linkedin_login(driver: webdriver.Chrome, secrets: dict):
@@ -19,91 +19,82 @@ def linkedin_login(driver: webdriver.Chrome, secrets: dict):
         by=By.XPATH, value='//*[@id="organic-div"]/form/div[3]/button'
     )
     login_button.click()
-    time.sleep(randint(1, 5))
+
 
 def linkedin_scroll(driver: webdriver.Chrome):
     while True:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(randint(1, 5))
         try:
             driver.find_element(by=By.CLASS_NAME, value="artdeco-loader__bars")
         except NoSuchElementException:
             break
-    time.sleep(randint(1, 5))
 
-def process_linkedin_htmls(file_name: str):
-    linkedin_links = json.load(open(f"jsons/{file_name}", "r"))
-    company_data = {}
-    for website in linkedin_links:
-        print("Processing: ", website)
-        linkedin_link = linkedin_links[website][0]
-        html_file = f"htmls/{linkedin_link.split('/')[-1]}.html"
-        try:
-            with open(html_file, "r") as file:
-                html_content = file.read()
-        except FileNotFoundError:
-            print(f"File not found: {html_file}")
-            continue
-        soup = BeautifulSoup(html_content, "html.parser")
-        company_name = (
-            str(soup.find("title").text.split(": People")[0]).replace("\n", "").strip()
+
+def linkedin_get_company_logo(driver: webdriver.Chrome):
+    try:
+        company_logo_image = driver.find_element(
+            by=By.CSS_SELECTOR, value="img.org-top-card-primary-content__logo"
         )
+        company_logo = company_logo_image.get_attribute("src")
+        if company_logo.startswith("data:image"):
+            return None
+        return company_logo
+    except NoSuchElementException:
+        return None
+
+
+def linkedin_wait(driver: webdriver.Chrome):
+    """
+    while element with class artdeco-loader is present in the page
+    """
+    while True:
         try:
-            company_logo = soup.find(
-                "img", class_="org-top-card-primary-content__logo"
-            ).get("src")
-        except AttributeError:
-            company_logo = None
-        try:
-            company_description = (
-                str(soup.find("p", class_="org-top-card-summary__tagline").text)
-                .replace("\n", "")
-                .strip()
-            )
-        except AttributeError:
-            company_description = None
-        try:
-            company_info = soup.find_all(
-                "div", class_="org-top-card-summary-info-list__info-item"
-            )
-        except AttributeError:
-            company_info = None
-        company_info_items = [
-            str(item.text).replace("\n", "").strip() for item in company_info
-        ]
-        company_people = soup.find_all(
-            "div", class_="org-people-profile-card__profile-info"
+            driver.find_element(by=By.CLASS_NAME, value="artdeco-loader")
+        except NoSuchElementException:
+            break
+
+
+def linkedin_get_company_executives(driver: webdriver.Chrome):
+    try:
+        company_people = driver.find_elements(
+            by=By.CSS_SELECTOR, value="div.org-people-profile-card__profile-info"
         )
-        company_people_info = []
+        people_info = list()
         for person in company_people:
-            person_name = (
-                str(
-                    person.find(
-                        "div", class_="org-people-profile-card__profile-title"
-                    ).text
-                )
-                .replace("\n", "")
-                .strip()
-            )
             try:
-                person_position = (
-                    str(
-                        person.find(
-                            "div", class_="artdeco-entity-lockup__subtitle"
-                        ).div.div.text
+                person_name = extract_soup_text(
+                    person.find_element(
+                        by=By.CSS_SELECTOR,
+                        value="div.org-people-profile-card__profile-title",
                     )
-                    .replace("\n", "")
-                    .strip()
                 )
-            except AttributeError:
+                if person_name.startswith("LinkedIn"):
+                    continue
+                person_position = extract_soup_text(
+                    person.find_element(
+                        by=By.XPATH,
+                        value="//div[contains(@class, 'artdeco-entity-lockup__subtitle')]",
+                    )
+                )
+                person_linkedin = person.find_element(
+                    by=By.XPATH,
+                    value="//div[contains(@class, 'artdeco-entity-lockup__content')]//div/a",
+                ).get_attribute("href")
+                person_image = person.find_element(
+                    by=By.CSS_SELECTOR, value="img.evi-image"
+                ).get_attribute("src")
+                if person_image.startswith("data:image"):
+                    person_image = None
+                people_info.append(
+                    {
+                        "name": person_name,
+                        "position": person_position,
+                        "linkedin": person_linkedin,
+                        "image": person_image,
+                    }
+                )
+            except NoSuchElementException:
                 continue
-            company_people_info.append((person_name, person_position))
-        company_data[website] = {
-            "linkedin_link": linkedin_link,
-            "company_name": company_name,
-            "company_logo": company_logo,
-            "company_description": company_description,
-            "company_info": company_info_items,
-            "company_people": company_people_info,
-        }
-    json.dump(company_data, open("jsons/company_data.json", "w"))
+        return people_info
+    except NoSuchElementException:
+        return []
