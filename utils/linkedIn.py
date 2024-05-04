@@ -21,31 +21,15 @@ def linkedin_login(driver: webdriver.Chrome, secrets: dict):
     login_button.click()
     time.sleep(randint(1, 5))
 
-
-def find_linkedin_company_people(company_links: list, secrets):
-    driver = webdriver.Chrome()
-    linkedin_login(driver, secrets)
-    # go to company page, and click on people
-    for company_link in company_links:
+def linkedin_scroll(driver: webdriver.Chrome):
+    while True:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(randint(1, 5))
         try:
-            driver.get(f"{company_link}/people/")
-            time.sleep(randint(1, 5))
-            while True:
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(randint(1, 5))
-                try:
-                    driver.find_element(by=By.CLASS_NAME, value="artdeco-loader__bars")
-                except NoSuchElementException:
-                    break
-            time.sleep(randint(1, 5))
-            html_content = driver.page_source
-            with open(f"htmls/{company_link.split('/')[-1]}.html", "w") as file:
-                file.write(html_content)
+            driver.find_element(by=By.CLASS_NAME, value="artdeco-loader__bars")
         except NoSuchElementException:
-            time.sleep(randint(1, 5))
-        except:
-            pass
-    driver.quit()
+            break
+    time.sleep(randint(1, 5))
 
 
 def process_linkedin_htmls(file_name: str):
