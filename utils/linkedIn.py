@@ -8,8 +8,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 
-def find_linkedin_company_people(company_links: list, secrets):
-    driver = webdriver.Chrome()
+def linkedin_login(driver: webdriver.Chrome, secrets: dict):
     driver.get("https://www.linkedin.com/login")
     time.sleep(randint(1, 5))
     username = driver.find_element(value="username")
@@ -21,6 +20,11 @@ def find_linkedin_company_people(company_links: list, secrets):
     )
     login_button.click()
     time.sleep(randint(1, 5))
+
+
+def find_linkedin_company_people(company_links: list, secrets):
+    driver = webdriver.Chrome()
+    linkedin_login(driver, secrets)
     # go to company page, and click on people
     for company_link in company_links:
         try:
