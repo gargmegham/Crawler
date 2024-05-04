@@ -31,7 +31,6 @@ def linkedin_scroll(driver: webdriver.Chrome):
             break
     time.sleep(randint(1, 5))
 
-
 def process_linkedin_htmls(file_name: str):
     linkedin_links = json.load(open(f"jsons/{file_name}", "r"))
     company_data = {}
