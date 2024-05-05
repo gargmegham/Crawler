@@ -11,8 +11,14 @@ def generate_possible_emails(person_name: str, company_domain: str):
         else:
             first_name = ""
             last_name = ""
-    first_initial = first_name[0]
-    last_initial = last_name[0]
+    try:
+        first_initial = first_name[0]
+    except IndexError:
+        first_initial = ""
+    try:
+        last_initial = last_name[0]
+    except IndexError:
+        last_initial = ""
     email_variations = [
         # First name last name
         f"{first_name}.{last_name}@{company_domain}",
