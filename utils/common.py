@@ -25,25 +25,21 @@ def generate_possible_emails(person_name: str, company_domain: str):
         f"{first_name}{last_name}@{company_domain}",
         f"{last_name}.{first_name}@{company_domain}",
         f"{last_name}{first_name}@{company_domain}",
-
-       # First initial last name
+        # First initial last name
         f"{first_initial}{last_name}@{company_domain}",
         f"{first_initial}.{last_name}@{company_domain}",
         f"{last_name}.{first_initial}@{company_domain}",
         f"{last_name}{first_initial}@{company_domain}",
-
         # First name last initial
         f"{first_name}{last_initial}@{company_domain}",
         f"{first_name}.{last_initial}@{company_domain}",
         f"{last_initial}{first_name}@{company_domain}",
         f"{last_initial}.{first_name}@{company_domain}",
-
         # First initial last initial
         f"{first_initial}.{last_initial}@{company_domain}",
         f"{first_initial}{last_initial}@{company_domain}",
         f"{last_initial}{first_initial}@{company_domain}",
         f"{last_initial}.{first_initial}@{company_domain}",
-
         # only one value
         f"{first_initial}@{company_domain}",
         f"{last_initial}@{company_domain}",
